@@ -1,177 +1,79 @@
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Privacy & Data Notice</title>
-  <style>
-    * { box-sizing: border-box; }
+<section id="ip-consent">
+  <h2>Log My IP</h2>
+  <p>
+    This is an optional action. If you continue, your public IP address
+    will be sent to the site's Discord logging channel. Your IP may
+    reveal approximate network location. Read the terms before deciding.
+  </p>
 
-    body {
-      margin: 0;
-      min-height: 100vh;
-      display: grid;
-      place-items: center;
-      padding: 20px;
-      background: #101218;
-      color: #f5f5f5;
-      font-family: Arial, sans-serif;
-    }
+  <button id="open-tos">View Terms of Service</button>
 
-    .panel {
-      width: min(500px, 100%);
-      padding: 28px;
-      background: #1b1e27;
-      border: 1px solid #393d4b;
-      border-radius: 16px;
-    }
-
-    h1 { margin-top: 0; }
-
-    p, li {
-      color: #cbd0dc;
-      line-height: 1.6;
-    }
-
-    .notice {
-      padding: 14px;
-      background: #252a37;
-      border-radius: 10px;
-      margin: 18px 0;
-    }
-
-    label {
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      margin: 16px 0;
-      line-height: 1.5;
-      cursor: pointer;
-    }
-
-    input[type="checkbox"] {
-      margin-top: 4px;
-      width: 18px;
-      height: 18px;
-      flex-shrink: 0;
-    }
-
-    button {
-      width: 100%;
-      padding: 13px;
-      margin-top: 10px;
-      border: 0;
-      border-radius: 8px;
-      font-weight: bold;
-      font-size: 15px;
-      cursor: pointer;
-    }
-
-    #confirm {
-      background: #795bff;
-      color: white;
-    }
-
-    #confirm:disabled {
-      background: #454354;
-      color: #aaa;
-      cursor: not-allowed;
-    }
-
-    #decline {
-      background: #303441;
-      color: white;
-    }
-
-    #siteContent { display: none; }
-    #declined { display: none; }
-    #error { color: #ff9292; }
-  </style>
-</head>
-<body>
-  <main class="panel" id="notice">
-    <h1>Privacy & Data Notice</h1>
-
+  <div id="tos" hidden>
+    <h3>Terms of Service & Privacy Notice</h3>
     <p>
-      Before entering, please review what technical information
-      this website may process and how it may be used.
+      By selecting "Log My IP to Discord", you request that this website
+      send your public IP address and the request time to its configured
+      Discord logging channel. This is optional and is not required to
+      use the rest of the website. Do not continue if you do not agree.
     </p>
 
-    <div class="notice">
-      <strong>What you should understand</strong>
-      <ul>
-        <li>Your IP address may be visible to the website's server
-          when your browser makes a request.</li>
-        <li>Visit logs may be used for security, abuse prevention,
-          and site administration.</li>
-        <li>Your hosting provider may process technical request data.</li>
-      </ul>
-      <p>
-        This notice does not claim that IP addresses are sent to
-        Discord. Any additional sharing must be accurately disclosed
-        before this agreement is used.
-      </p>
-    </div>
-
     <label>
-      <input type="checkbox" id="read">
-      <span>I have read the privacy notice above and understand that
-        my IP address may be processed when I visit this website.</span>
+      <input type="checkbox" id="accept-tos">
+      I have read and agree to this specific IP submission.
     </label>
 
-    <label>
-      <input type="checkbox" id="understand">
-      <span>I understand that visit information may be logged for
-        the purposes described above.</span>
-    </label>
+    <p id="ip-status" role="status" aria-live="polite"></p>
+    <button id="log-ip" disabled>Log My IP to Discord</button>
+    <button id="cancel-tos">Cancel</button>
+  </div>
+</section>
 
-    <p id="error" role="alert" aria-live="polite"></p>
+<script>
+  const tos = document.getElementById("tos");
+  const accept = document.getElementById("accept-tos");
+  const logButton = document.getElementById("log-ip");
+  const status = document.getElementById("ip-status");
 
-    <button id="confirm" disabled>Confirm & Continue</button>
-    <button id="decline">I Do Not Agree — Exit</button>
-  </main>
+  document.getElementById("open-tos").onclick = () => {
+    tos.hidden = false;
+  };
 
-  <main class="panel" id="declined">
-    <h1>Access Not Continued</h1>
-    <p>You chose not to accept the notice, so this page will remain
-      unavailable.</p>
-  </main>
+  accept.onchange = () => {
+    logButton.disabled = !accept.checked;
+  };
 
-  <main id="siteContent">
-    <!-- Place your existing website content here. -->
-  </main>
+  document.getElementById("cancel-tos").onclick = () => {
+    tos.hidden = true;
+    accept.checked = false;
+    logButton.disabled = true;
+    status.textContent = "";
+  };
 
-  <script>
-    const read = document.getElementById("read");
-    const understand = document.getElementById("understand");
-    const confirm = document.getElementById("confirm");
-    const notice = document.getElementById("notice");
-    const content = document.getElementById("siteContent");
-    const declined = document.getElementById("declined");
-    const error = document.getElementById("error");
+  logButton.onclick = async () => {
+    if (!accept.checked) return;
 
-    function updateButton() {
-      confirm.disabled = !(read.checked && understand.checked);
+    logButton.disabled = true;
+    status.textContent = "Submitting your request...";
+
+    try {
+      const response = await fetch(
+        "https://YOUR-RENDER-SERVICE.onrender.com/log-my-ip",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ consent: true })
+        }
+      );
+
+      if (!response.ok) throw new Error("Request failed");
+
+      status.textContent = "Your request was sent successfully.";
+    } catch {
+      status.textContent =
+        "Could not submit. Check the server URL and try again.";
+    } finally {
+      logButton.disabled = !accept.checked;
     }
-
-    read.addEventListener("change", updateButton);
-    understand.addEventListener("change", updateButton);
-
-    confirm.addEventListener("click", () => {
-      if (!read.checked || !understand.checked) {
-        error.textContent = "Please check both boxes before continuing.";
-        return;
-      }
-
-      notice.style.display = "none";
-      content.style.display = "block";
-    });
-
-    document.getElementById("decline").addEventListener("click", () => {
-      notice.style.display = "none";
-      declined.style.display = "block";
-    });
-  </script>
-</body>
-</html>
+  };
+</script>
