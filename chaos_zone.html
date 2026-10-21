@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Absolutely Nothing Suspicious</title>
+<style>
+:root{color-scheme:dark;--bg:#0b1020;--panel:#151d35;--line:#293654;--text:#f3f6ff;--muted:#aab6d3;--hot:#9b8cff;--cyan:#56e5d5}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif;color:var(--text);background:radial-gradient(ellipse at 15% 10%,#26356a 0,transparent 36%),radial-gradient(ellipse at 90% 80%,#3b1e59 0,transparent 32%),var(--bg);display:grid;place-items:center;padding:24px}
+main{width:min(760px,100%)}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
+.pill{font-size:.78rem;border:1px solid var(--line);background:#11182b;padding:7px 11px;border-radius:999px;color:var(--muted)}
+.card{background:linear-gradient(145deg,#171f38ee,#10172bee);border:1px solid var(--line);border-radius:24px;padding:clamp(22px,5vw,42px);box-shadow:0 25px 80px #0007}
+h1{font-size:clamp(2.2rem,7vw,4.5rem);line-height:.98;letter-spacing:-.055em;margin:18px 0}
+.grad{background:linear-gradient(90deg,var(--cyan),#b5a8ff 55%,#ff9fcf);-webkit-background-clip:text;background-clip:text;color:transparent}
+p{color:var(--muted);line-height:1.65}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:24px 0}
+.stat{padding:14px;border:1px solid var(--line);background:#0c1326;border-radius:15px}
+.stat strong{display:block;font-size:1.55rem}
+.stat span{color:var(--muted);font-size:.8rem}
+button{font:inherit;cursor:pointer;border:0;border-radius:13px;padding:13px 17px;font-weight:750;transition:transform .12s,filter .12s}
+button:hover{filter:brightness(1.1);transform:translateY(-2px)}
+button:active{transform:scale(.98)}
+.primary{color:#101329;background:linear-gradient(90deg,var(--cyan),#b5a8ff);width:100%;font-size:1.05rem;padding:17px}
+.secondary{color:var(--text);background:#242e4a;border:1px solid #364466}
+#message{min-height:52px;margin:18px 0 0;color:#e5e9ff}
+.meter{height:8px;background:#0a1020;border-radius:99px;overflow:hidden;margin-top:10px}
+#bar{height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--hot));transition:width .2s}
+.footer{font-size:.8rem;text-align:center;color:#8491b2;margin:18px 0 0}
+.spark{display:inline-block;animation:float 2s ease-in-out infinite}
+@keyframes float{50%{transform:translateY(-5px) rotate(8deg)}}
+@media(max-width:500px){.stats{grid-template-columns:1fr 1fr}.stat:last-child{grid-column:span 2}.top{align-items:flex-start;flex-direction:column}}
+</style>
+</head>
+<body>
+<main>
+  <div class="top"><span class="pill">✦ INTERNET SIDE QUEST</span><span class="pill">100% pointless · 100% playable</span></div>
+  <section class="card">
+    <div class="pill">STATUS: suspiciously chill</div>
+    <h1>Welcome to<br><span class="grad">the chaos zone.</span> <span class="spark">✦</span></h1>
+    <p>A tiny game for people with 12 open tabs and absolutely no plan. Click the button as many times as you can in 10 seconds. Prove absolutely nothing.</p>
+    <div class="stats">
+      <div class="stat"><strong id="score">0</strong><span>Clicks</span></div>
+      <div class="stat"><strong id="time">10.0</strong><span>Seconds left</span></div>
+      <div class="stat"><strong id="best">0</strong><span>Best this session</span></div>
+    </div>
+    <button class="primary" id="clicker">START THE NONSENSE</button>
+    <div class="meter"><div id="bar"></div></div>
+    <p id="message" aria-live="polite">Your destiny is one button away. (Dramatic music not included.)</p>
+    <button class="secondary" id="random">Give me a random fact</button>
+  </section>
+  <p class="footer">This mini-game runs in your browser and doesn't collect or transmit personal information.</p>
+</main>
+<script>
+(() => {
+  const scoreEl=document.querySelector('#score'),timeEl=document.querySelector('#time'),bestEl=document.querySelector('#best'),button=document.querySelector('#clicker'),message=document.querySelector('#message'),bar=document.querySelector('#bar'),random=document.querySelector('#random');
+  const facts=[
+    "Octopuses have three hearts. Overachievers.",
+    "A group of flamingos is called a flamboyance. Obviously.",
+    "Bananas are berries. Strawberries aren't. Botany is trolling us.",
+    "Wombat poop is cube-shaped. Nature had a Minecraft phase.",
+    "Some turtles can breathe through their butts. Science is wild.",
+    "The inventor of the Pringles can was buried in one.",
+    "A day on Venus is longer than its year. Terrible calendar app.",
+    "Sea otters sometimes hold hands while sleeping so they don't drift apart."
+  ];
+  const reactions=["THE BUTTON FEARS YOU.","Finger speed: mildly concerning.","Okay, gamer, we see you.","Your mouse is filing a complaint.","ABSOLUTE CLICK DEMON.","This is your side quest now.","The leaderboard is imaginary, but your glory is real."];
+  let score=0,best=0,left=10,running=false,endsAt=0,timer=null;
+  function showTime(){left=Math.max(0,(endsAt-Date.now())/1000);timeEl.textContent=left.toFixed(1);bar.style.width=((10-left)*10)+'%';if(left<=0)finish();}
+  function finish(){if(!running)return;running=false;clearInterval(timer);best=Math.max(best,score);bestEl.textContent=best;button.textContent='PLAY AGAIN';message.textContent=`Time! You got ${score} clicks. ${score>=35?'Certified button menace.':score>=20?'Not bad, speedster.':'Warm-up round. Run it back?'}`;}
+  function start(){score=0;left=10;running=true;endsAt=Date.now()+10000;scoreEl.textContent='0';timeEl.textContent='10.0';bar.style.width='0%';button.textContent='CLICK! CLICK! CLICK!';message.textContent='GO GO GO!';clearInterval(timer);timer=setInterval(showTime,50);}
+  button.addEventListener('click',()=>{if(!running){start();return;}score++;scoreEl.textContent=score;if(score%7===0)message.textContent=reactions[Math.floor(Math.random()*reactions.length)];});
+  random.addEventListener('click',()=>{message.textContent=facts[Math.floor(Math.random()*facts.length)];});
+})();
+</script>
+</body>
+</html>
