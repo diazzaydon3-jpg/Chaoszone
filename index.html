@@ -1,79 +1,242 @@
 
-<section id="ip-consent">
-  <h2>Log My IP</h2>
-  <p>
-    This is an optional action. If you continue, your public IP address
-    will be sent to the site's Discord logging channel. Your IP may
-    reveal approximate network location. Read the terms before deciding.
-  </p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chaos Zone | IP Logging</title>
 
-  <button id="open-tos">View Terms of Service</button>
-
-  <div id="tos" hidden>
-    <h3>Terms of Service & Privacy Notice</h3>
-    <p>
-      By selecting "Log My IP to Discord", you request that this website
-      send your public IP address and the request time to its configured
-      Discord logging channel. This is optional and is not required to
-      use the rest of the website. Do not continue if you do not agree.
-    </p>
-
-    <label>
-      <input type="checkbox" id="accept-tos">
-      I have read and agree to this specific IP submission.
-    </label>
-
-    <p id="ip-status" role="status" aria-live="polite"></p>
-    <button id="log-ip" disabled>Log My IP to Discord</button>
-    <button id="cancel-tos">Cancel</button>
-  </div>
-</section>
-
-<script>
-  const tos = document.getElementById("tos");
-  const accept = document.getElementById("accept-tos");
-  const logButton = document.getElementById("log-ip");
-  const status = document.getElementById("ip-status");
-
-  document.getElementById("open-tos").onclick = () => {
-    tos.hidden = false;
-  };
-
-  accept.onchange = () => {
-    logButton.disabled = !accept.checked;
-  };
-
-  document.getElementById("cancel-tos").onclick = () => {
-    tos.hidden = true;
-    accept.checked = false;
-    logButton.disabled = true;
-    status.textContent = "";
-  };
-
-  logButton.onclick = async () => {
-    if (!accept.checked) return;
-
-    logButton.disabled = true;
-    status.textContent = "Submitting your request...";
-
-    try {
-      const response = await fetch(
-        ""https://ip-logging-server.onrender.com/log-my-ip",",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ consent: true })
-        }
-      );
-
-      if (!response.ok) throw new Error("Request failed");
-
-      status.textContent = "Your request was sent successfully.";
-    } catch {
-      status.textContent =
-        "Could not submit. Check the server URL and try again.";
-    } finally {
-      logButton.disabled = !accept.checked;
+  <style>
+    * {
+      box-sizing: border-box;
     }
-  };
-</script>
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      padding: 24px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #0b0d12;
+      color: #f5f5f7;
+      font-family: Arial, sans-serif;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 560px;
+      padding: 30px;
+      background: #171a23;
+      border: 1px solid #303544;
+      border-radius: 18px;
+      box-shadow: 0 18px 60px #0008;
+    }
+
+    h1 {
+      margin-top: 0;
+      font-size: 30px;
+    }
+
+    p {
+      color: #c3c9d6;
+      line-height: 1.65;
+    }
+
+    .notice {
+      margin: 22px 0;
+      padding: 18px;
+      border: 1px solid #383e50;
+      border-radius: 12px;
+      background: #202431;
+    }
+
+    button {
+      width: 100%;
+      padding: 14px 16px;
+      margin-top: 12px;
+      border: 0;
+      border-radius: 9px;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .primary {
+      background: #8065ff;
+      color: white;
+    }
+
+    .secondary {
+      background: #303544;
+      color: white;
+    }
+
+    button:disabled {
+      background: #414454;
+      color: #aeb2c0;
+      cursor: not-allowed;
+    }
+
+    label {
+      display: flex;
+      align-items: flex-start;
+      gap: 11px;
+      margin: 18px 0;
+      line-height: 1.5;
+      color: #e1e4ed;
+      cursor: pointer;
+    }
+
+    input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      margin-top: 3px;
+      flex-shrink: 0;
+    }
+
+    #tos {
+      margin-top: 22px;
+      padding-top: 20px;
+      border-top: 1px solid #383e50;
+    }
+
+    #ip-status {
+      overflow-wrap: anywhere;
+    }
+
+    .small {
+      font-size: 12px;
+      color: #969daf;
+    }
+  </style>
+</head>
+
+<body>
+  <main class="container">
+    <section id="ip-consent">
+      <h1>Chaos Zone</h1>
+      <p>
+        You can voluntarily submit your public IP address for
+        logging to the site's configured Discord channel.
+        This is optional.
+      </p>
+
+      <button type="button" class="primary" id="open-tos">
+        View Terms of Service
+      </button>
+
+      <section id="tos" hidden>
+        <h2>Terms of Service & Privacy Notice</h2>
+
+        <div class="notice">
+          <h3>What happens if you continue?</h3>
+          <p>
+            If you choose "Log My IP to Discord", the server will
+            receive your request's IP address and send it, along
+            with the request time, to the site's configured
+            Discord logging channel.
+          </p>
+          <p>
+            IP addresses can reveal approximate network location.
+            Discord and the hosting provider may process data
+            according to their own policies.
+          </p>
+          <p>
+            This submission is optional. You do not need to submit
+            your IP to use the rest of this page.
+          </p>
+        </div>
+
+        <label>
+          <input type="checkbox" id="accept-tos">
+          <span>
+            I have read and understand this notice, and I
+            voluntarily request that my IP address be sent
+            to the site's Discord logging channel.
+          </span>
+        </label>
+
+        <p id="ip-status" role="status" aria-live="polite"></p>
+
+        <button type="button" class="primary" id="log-ip" disabled>
+          Log My IP to Discord
+        </button>
+
+        <button type="button" class="secondary" id="cancel-tos">
+          Cancel
+        </button>
+      </section>
+
+      <p class="small">
+        Only click the logging button if you understand and agree
+        to the disclosure above.
+      </p>
+    </section>
+  </main>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const openButton = document.getElementById("open-tos");
+      const tos = document.getElementById("tos");
+      const accept = document.getElementById("accept-tos");
+      const logButton = document.getElementById("log-ip");
+      const cancelButton = document.getElementById("cancel-tos");
+      const status = document.getElementById("ip-status");
+
+      openButton.addEventListener("click", () => {
+        tos.hidden = false;
+        openButton.textContent = "Terms of Service Open";
+        status.textContent = "";
+      });
+
+      accept.addEventListener("change", () => {
+        logButton.disabled = !accept.checked;
+      });
+
+      cancelButton.addEventListener("click", () => {
+        tos.hidden = true;
+        accept.checked = false;
+        logButton.disabled = true;
+        openButton.textContent = "View Terms of Service";
+        status.textContent = "";
+      });
+
+      logButton.addEventListener("click", async () => {
+        if (!accept.checked) return;
+
+        logButton.disabled = true;
+        status.textContent = "Submitting your request...";
+
+        try {
+          const response = await fetch(
+            "https://ip-logging-server.onrender.com/log-my-ip",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify({
+                consent: true
+              })
+            }
+          );
+
+          if (!response.ok) {
+            throw new Error("Server returned " + response.status);
+          }
+
+          status.textContent =
+            "Your request was submitted successfully.";
+        } catch (error) {
+          console.error(error);
+          status.textContent =
+            "Request failed. Please check the server and try again.";
+        } finally {
+          logButton.disabled = !accept.checked;
+        }
+      });
+    });
+  </script>
+</body>
+</html>
