@@ -5,13 +5,12 @@ const app = express();
 const PORT = process.env.PORT || 10000;
 const WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
 
-// Trust Render's proxy only when configured for your deployment.
-// Do not trust arbitrary forwarded headers from untrusted clients.
+const ALLOWED_ORIGIN = "https://diazzaydon3-jpg.github.io";
+
+// Trust one proxy hop only if it matches your Render deployment.
 app.set("trust proxy", 1);
 
 app.use(express.json({ limit: "2kb" }));
-
-const ALLOWED_ORIGIN = "https://diazzaydon3-jpg.github.io";
 
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", ALLOWED_ORIGIN);
@@ -30,9 +29,10 @@ app.get("/", (req, res) => {
 });
 
 app.post("/log-my-ip", async (req, res) => {
+  // Require explicit consent from the visitor.
   if (req.body?.consent !== true) {
     return res.status(400).json({
-      error: "Explicit consent is required."
+      error: "Please accept the IP logging notice first."
     });
   }
 
@@ -43,52 +43,71 @@ app.post("/log-my-ip", async (req, res) => {
   }
 
   let webhook;
+
   try {
     webhook = new URL(WEBHOOK_URL);
 
     if (
       webhook.protocol !== "https:" ||
-      !["discord.com", "discordapp.com"].includes(webhook.hostname) ||
+      !["discord.com", "discordapp.com"].includes(
+        webhook.hostname
+      ) ||
       !webhook.pathname.includes("/api/webhooks/")
     ) {
       throw new Error("Invalid webhook URL");
     }
   } catch {
     return res.status(500).json({
-      error: "Webhook configuration is invalid."
+      error: "Discord webhook configuration is invalid."
     });
   }
 
-  // IP as determined by Express and the configured proxy.
-  const ip = req.ip || "unknown";
+  // Express determines the client address using the configured proxy.
+  const ip = req.ip;
+
+  if (!ip) {
+    return res.status(400).json({
+      error: "Could not determine the visitor address."
+    });
+  }
+
   const timestamp = new Date().toISOString();
 
   try {
-    const discordResponse = await fetch(WEBHOOK_URL, {
+    const response = await fetch(WEBHOOK_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
         content:
-          "A visitor requested IP logging after accepting the notice.\n" +
-          "IP: " + ip + "\n" +
-          "Time: " + timestamp
+          "**Chaos Zone — Consent-Based IP Log**\n" +
+          "The visitor accepted the IP logging notice.\n" +
+          "Address reported by the server: `" + ip + "`\n" +
+          "Time (UTC): " + timestamp
       })
     });
 
-    if (!discordResponse.ok) {
-      console.error("Discord webhook failed:", discordResponse.status);
+    if (!response.ok) {
+      console.error(
+        "Discord webhook failed with status:",
+        response.status
+      );
+
       return res.status(502).json({
         error: "Discord notification failed."
       });
     }
 
-    console.log("Visitor-requested IP log sent at", timestamp);
+    console.log("Consent-based IP log sent at", timestamp);
 
-    return res.json({ success: true });
+    return res.json({
+      success: true,
+      message: "Your request was processed."
+    });
   } catch (error) {
     console.error("Discord request failed:", error.message);
+
     return res.status(502).json({
       error: "Could not send Discord notification."
     });
@@ -96,5 +115,5 @@ app.post("/log-my-ip", async (req, res) => {
 });
 
 app.listen(PORT, "0.0.0.0", () => {
-  console.log(`Chaos Zone server listening on port ${PORT}`);
+  console.log("Chaos Zone server listening on port " + PORT);
 });
